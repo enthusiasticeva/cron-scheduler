@@ -2,12 +2,17 @@
 - A basic version of the Linux 'cron' command, implemented in Python
 - This program reads in a file that gives programs with when they need to be run.
 
+## To Run Locally
+- change the `home_path` variable in [`runner.py`](/runner.py) and [`runstatus.py`](/runstatus.py) to the absolute path for your home folder, or wherever you would like the program to store it's files.
+
 ## Files
 ### `runner.py`
+- Note that this file contains the class `Task`, and then the main line for the program.
 - Reads in the config file
 - Runs in the background (daemon), running the specified programs at the correct times
 - keeps information about what and when programs will run, and when they last ran
 - At startup, the program will writes it's `PID` to `$HOME/.runner.pid`, and create the `$HOME/.runner.status` file if it doesnt already exist.
+- When there are no tasks left to run, the program will terminate.
 
 ### `runstatus.py`
 - Gets the current status of `runner.py`, and prints it to standard output

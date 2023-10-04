@@ -3,10 +3,12 @@
 
 import os, sys, signal,time
 
+home_path = ""
+
 # open the pidfile and read the process id
 #    give an error message if file not found or bad pid
 try:
-  with open("/home/.runner.pid", "r") as f:
+  with open(home_path + ".runner.pid", "r") as f:
     pid = f.readline().strip()
 except FileNotFoundError:
   print("File not found.")
@@ -19,7 +21,7 @@ except:
   sys.exit(1)
 
 # Checks the contents of the status file every second for 5 seconds until something appears.
-f = open("/home/.runner.status", "r")
+f = open(home_path + ".runner.status", "r")
 lines = f.readlines()
 if len(lines) == 0:
   for i in range(5):
@@ -40,6 +42,6 @@ f.close()
 
 
 # Clears the status file
-f = open("/home/.runner.status", "w")
+f = open(home_path + ".runner.status", "w")
 f.write("")
 f.close()

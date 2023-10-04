@@ -3,6 +3,8 @@
 
 import os, time, datetime, sys, copy, signal
 
+home_path = ""
+
 """
 The configuration file for runner.py will contain one line for each program that is to be run.   Each line has the following parts: 
 
@@ -226,7 +228,7 @@ def catch(signum, frame):
 
   # Checks the file exists, opens it
   try:
-    f = open("/home/.runner.status", "a")
+    f = open(home_path + ".runner.status", "a")
   except Exception as e:
     print("File ~/.runner.status {}".format(str(e)))
     sys.exit()
@@ -259,7 +261,7 @@ signal.signal(signal.SIGUSR1, catch)
 
 # Writes PID into $HOME/.runner.pid
 try:
-  with open("/home/.runner.pid", "w") as f:
+  with open(home_path + ".runner.pid", "w") as f:
     pid = os.getpid()
     f.write(str(pid))
 except Exception as e:
@@ -269,15 +271,15 @@ except Exception as e:
 # Check that the status file $HOME/.runner.status exists.
 # If the status file does not exist, create it.
 try:
-  f = open("/home/.runner.status")
+  f = open(home_path + ".runner.status")
   f.close()
 except FileNotFoundError as e:
-  f = open("/home/.runner.status","w").close()
+  f = open(home_path + ".runner.status","w").close()
 
 # Parse config file into record from $HOME/.runner.conf
 # Attempts to open file
 try:
-  specFile = open("/home/.runner.conf", "r")
+  specFile = open(home_path + ".runner.conf", "r")
 except FileNotFoundError as e:
   print("configuration file not found")
   sys.exit()
