@@ -1,0 +1,529 @@
+
+Assumed starting date for all tests: Tuesday, 27th October 2020
+------------------------------------------------------------------------------------------------------------
+
+Test 1: An "at" config line run before the specified time.
+
+  ~/.runner.conf -> at 0730 run /bin/touch /tmp/a
+
+Time    | Command               | What is Happening | Output
+------------------------------------------------------------------------------------------------------------
+Tue     |                       |                   |
+6:30am  | python3 runner.py  &  |runner.py begins & |
+        |                       |continues          |
+        |                       |                   |
+7:00am  | python3 runstatus.py  |                   | will run at Tue Oct 27 07:30:00 2020 /bin/touch /tmp/a
+        |                       |                   |
+7:30am  |                       |/bin touch /tmp/a  | 
+        |                       | is run, making    |
+        |                       | the file "a"      |
+        |                       |                   |
+        |                       |runner.py          | nothing left to run
+        |                       | terminates        |
+        |                       |                   |
+
+
+Test 2: An "at" config line run after the specified time.
+
+  ~/.runner.conf -> at 0730 run /bin/touch /tmp/a
+
+Time    | Command               | What is Happening | Output
+------------------------------------------------------------------------------------------------------------
+Tue     |                       |                   |
+8:30am  | python3 runner.py  &  |runner.py begins & |
+        |                       |continues          |
+        |                       |                   |
+9:00am  | python3 runstatus.py  |                   | will run at Wed Oct 28 07:30:00 2020 /bin/touch /tmp/a
+        |                       |                   |
+Wed     |                       |                   |
+7:30am  |                       |/bin touch /tmp/a  | 
+        |                       | is run, making    |
+        |                       | the file "a"      |
+        |                       |                   |
+        |                       |runner.py          | nothing left to run
+        |                       | terminates        |
+        |                       |                   |
+
+
+
+Test 3: An "at" config line with multiple times (some already passed, some not) 
+        + Testing the config file updates with run processes
+
+  ~/.runner.conf -> at 0730,1800 run /bin/echo Hello
+
+Time    | Command               | What is Happening | Output
+------------------------------------------------------------------------------------------------------------
+Tue     |                       |                   |
+8:30am  | python3 runner.py  &  |runner.py begins & |
+        |                       |continues          |
+        |                       |                   |
+9:00am  | python3 runstatus.py  |                   | will run at Tue Oct 27 18:00:00 2020 /bin/echo Hello
+        |                       |                   | will run at Wed Oct 28 07:30:00 2020 /bin/echo Hello
+        |                       |                   |
+6:00pm  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+6:30pm  | python3 runstatus.py  |                   | ran at Tue Oct 27 18:00:00 2020 /bin/echo Hello
+        |                       |                   | will run at Wed Oct 28 07:30:00 2020 /bin/echo Hello
+~~~~~~~~|                       |                   |
+Oct 28  |                       |                   |
+Wed     |                       |                   |
+7:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+        |                       |                   |
+        |                       |runner.py          | nothing left to run
+        |                       | terminates        |
+
+Test 4: An "on" config run before the specified time.
+
+  ~/.runner.conf -> on Tuesday at 0730 run /bin/echo Hello
+
+Time    | Command               | What is Happening | Output
+------------------------------------------------------------------------------------------------------------
+Tue     |                       |                   |
+6:30am  | python3 runner.py  &  |runner.py begins & |
+        |                       |continues          |
+        |                       |                   |
+7:00am  | python3 runstatus.py  |                   | will run at Tue Oct 27 07:30:00 2020 /bin/echo Hello
+        |                       |                   | 
+        |                       |                   |
+7:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+        |                       |runner.py          | nothing left to run
+        |                       | terminates        |
+
+
+Test 5: An "on" config run after the specified time.
+
+  ~/.runner.conf -> on Tuesday at 0730 run /bin/echo Hello
+
+Time    | Command               | What is Happening | Output
+------------------------------------------------------------------------------------------------------------
+Tue     |                       |                   |
+Oct 27  |                       |                   |
+8:30am  | python3 runner.py  &  |runner.py begins & |
+        |                       |continues          |
+        |                       |                   |
+9:00am  | python3 runstatus.py  |                   | will run at Tue Nov 3 07:30:00 2020 /bin/echo Hello
+        |                       |                   |
+~~~~~~~~|                       |                   |
+Tue     |                       |                   |
+Nov 3   |                       |                   |
+7:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+        |                       |runner.py          | nothing left to run
+        |                       | terminates        |
+
+
+Test 6: An "on" config with one day and multiple times (mix of passed and not times)
+
+  ~/.runner.conf -> on Tuesday at 0730,0800,1600,1800 run /bin/echo Hello
+
+Time    | Command               | What is Happening | Output
+------------------------------------------------------------------------------------------------------------
+Tue     |                       |                   |
+Oct 27  |                       |                   |
+8:30am  | python3 runner.py  &  |runner.py begins & |
+        |                       |continues          |
+        |                       |                   | 
+9:00am  | python3 runstatus.py  |                   | will run at Tue Oct 27 16:00:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Oct 27 18:00:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 3 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 3 08:00:00 2020 /bin/echo Hello
+        |                       |                   |
+4:00pm  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+6:00pm  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+9:00pm  | python3 runstatus.py  |                   | ran at Tue Oct 27 16:00:00 2020 /bin/echo Hello
+        |                       |                   | ran at Tue Oct 27 18:00:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 3 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 3 08:00:00 2020 /bin/echo Hello
+~~~~~~~~|                       |                   |
+Tue     |                       |                   | 
+Nov 3   |                       |                   | 
+7:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+7:45am  | python3 runstatus.py  |                   | ran at Tue Oct 27 16:00:00 2020 /bin/echo Hello
+        |                       |                   | ran at Tue Oct 27 18:00:00 2020 /bin/echo Hello
+        |                       |                   | ran at Tue Nov 3 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 3 08:00:00 2020 /bin/echo Hello
+        |                       |                   |
+8:00am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+        |                       |runner.py          | nothing left to run
+        |                       | terminates        |
+
+
+
+Test 7: An "on" config with many days.
+
+  ~/.runner.conf -> on Tuesday,Wednesday,Thursday,Friday at 0730 run /bin/echo Hello
+
+Time    | Command               | What is Happening | Output
+------------------------------------------------------------------------------------------------------------
+Tue     |                       |                   |
+Oct 27  |                       |                   |
+8:30am  | python3 runner.py  &  |runner.py begins & |
+        |                       |continues          |
+        |                       |                   |
+9:00am  | python3 runstatus.py  |                   | will run at Wed Oct 28 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Thu Oct 29 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Fri Oct 30 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 3 07:30:00 2020 /bin/echo Hello
+~~~~~~~~|                       |                   |
+Wed     |                       |                   |
+Oct 28  |                       |                   |
+7:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+~~~~~~~~|                       |                   |
+Thu     |                       |                   |
+Oct 29  |                       |                   |
+7:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+~~~~~~~~|                       |                   |
+Fri     |                       |                   |
+Oct 30  |                       |                   |
+7:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+~~~~~~~~|                       |                   |
+Tue     |                       |                   |
+Nov 3   |                       |                   |
+7:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+        |                       |                   |
+        |                       |                   |
+        |                       |runner.py          | nothing left to run
+        |                       | terminates        |
+
+
+
+Test 8: An "on" config with multiple days and multiple times.
+
+  ~/.runner.conf -> on Tuesday,Wednesday at 0730,0930 run /bin/echo Hello
+
+Time    | Command               | What is Happening | Output
+------------------------------------------------------------------------------------------------------------
+Tue     |                       |                   |
+Oct 27  |                       |                   |
+8:30am  | python3 runner.py  &  |runner.py begins & |
+        |                       |continues          |
+        |                       |                   |
+9:00am  | python3 runstatus.py  |                   | will run at Tue Oct 27 09:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Wed Oct 28 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Wed Oct 28 09:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 3 07:30:00 2020 /bin/echo Hello
+        |                       |                   |
+9:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+~~~~~~~~|                       |                   |
+Wed     |                       |                   |
+Oct 28  |                       |                   |
+7:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+9:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+~~~~~~~~|                       |                   |
+Tue     |                       |                   |
+Nov 3   |                       |                   |
+7:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+        |                       |                   |
+        |                       |                   |
+        |                       |runner.py          | nothing left to run
+        |                       | terminates        |
+
+
+Test 9: An "every" config run before the time.
+        + Updating the status file for repeated events
+
+  ~/.runner.conf -> every Tuesday at 0930 run /bin/echo Hello
+
+Time    | Command               | What is Happening | Output
+------------------------------------------------------------------------------------------------------------
+Tue     |                       |                   |
+Oct 27  |                       |                   |
+8:30am  | python3 runner.py  &  |runner.py begins & |
+        |                       |continues          |
+        |                       |                   |
+9:00am  | python3 runstatus.py  |                   | will run at Tue Oct 27 09:30:00 2020 /bin/echo Hello
+        |                       |                   |
+9:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+10:00am | python3 runstatus.py  |                   | ran at Tue Oct 27 09:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 3 09:30:00 2020 /bin/echo Hello
+        |                       |                   |
+~~~~~~~~|                       |                   |
+Tue     |                       |                   |
+Nov 3   |                       |                   |
+9:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+10:00am | python3 runstatus.py  |                   | ran at Tue Oct 27 09:30:00 2020 /bin/echo Hello
+        |                       |                   | ran at Tue Nov 3 09:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 10 09:30:00 2020 /bin/echo Hello
+.
+.
+.
+
+
+Test 10: An "every" config run after the time.
+
+  ~/.runner.conf -> every Tuesday at 0730 run /bin/echo Hello
+
+Time    | Command               | What is Happening | Output
+------------------------------------------------------------------------------------------------------------
+Tue     |                       |                   |
+Oct 27  |                       |                   |
+8:30am  | python3 runner.py  &  |runner.py begins & |
+        |                       |continues          |
+        |                       |                   |
+9:00am  | python3 runstatus.py  |                   | will run at Tue Nov 3 07:30:00 2020 /bin/echo Hello
+        |                       |                   |
+~~~~~~~~|                       |                   |
+Tue     |                       |                   |
+Nov 3   |                       |                   |
+7:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+10:00am | python3 runstatus.py  |                   | ran at Tue Nov 3 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 10 07:30:00 2020 /bin/echo Hello
+.
+.
+.
+
+Test 11: An "every" config with multiple times.
+
+  ~/.runner.conf -> every Tuesday at 0730,0800,1600,1800 run /bin/echo Hello
+
+Time    | Command               | What is Happening | Output
+------------------------------------------------------------------------------------------------------------
+Tue     |                       |                   |
+Oct 27  |                       |                   |
+8:30am  | python3 runner.py  &  |runner.py begins & |
+        |                       |continues          |
+        |                       |                   | 
+9:00am  | python3 runstatus.py  |                   | will run at Tue Oct 27 16:00:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Oct 27 18:00:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 3 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 3 08:00:00 2020 /bin/echo Hello
+        |                       |                   |
+4:00pm  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+6:00pm  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+9:00pm  | python3 runstatus.py  |                   | ran at Tue Oct 27 16:00:00 2020 /bin/echo Hello
+        |                       |                   | ran at Tue Oct 27 18:00:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 3 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 3 08:00:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 3 16:00:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 3 18:00:00 2020 /bin/echo Hello
+~~~~~~~~|                       |                   |
+Tue     |                       |                   | 
+Nov 3   |                       |                   | 
+7:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+7:45am  | python3 runstatus.py  |                   | ran at Tue Oct 27 16:00:00 2020 /bin/echo Hello
+        |                       |                   | ran at Tue Oct 27 18:00:00 2020 /bin/echo Hello
+        |                       |                   | ran at Tue Nov 3 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 3 08:00:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 3 16:00:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 3 18:00:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 10 7:30:00 2020 /bin/echo Hello
+        |                       |                   |
+8:00am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+9:00am  | python3 runstatus.py  |                   | ran at Tue Oct 27 16:00:00 2020 /bin/echo Hello
+        |                       |                   | ran at Tue Oct 27 18:00:00 2020 /bin/echo Hello
+        |                       |                   | ran at Tue Nov 3 07:30:00 2020 /bin/echo Hello
+        |                       |                   | ran at Tue Nov 3 08:00:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 3 16:00:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 3 18:00:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 10 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 10 08:00:00 2020 /bin/echo Hello
+.
+.
+.
+
+Test 12: An "every" config with multiple days and multiple times.
+
+  ~/.runner.conf -> every Tuesday,Wednesday,Thursday,Friday at 0730 run /bin/echo Hello
+
+Time    | Command               | What is Happening | Output
+------------------------------------------------------------------------------------------------------------
+Tue     |                       |                   |
+Oct 27  |                       |                   |
+8:30am  | python3 runner.py  &  |runner.py begins & |
+        |                       |continues          |
+        |                       |                   |
+9:00am  | python3 runstatus.py  |                   | will run at Wed Oct 28 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Thu Oct 29 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Fri Oct 30 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 3 07:30:00 2020 /bin/echo Hello
+~~~~~~~~|                       |                   |
+Wed     |                       |                   |
+Oct 28  |                       |                   |
+7:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+~~~~~~~~|                       |                   |
+Thu     |                       |                   |
+Oct 29  |                       |                   |
+7:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+9:00am  | python3 runstatus.py  |                   | ran at Wed Oct 28 07:30:00 2020 /bin/echo Hello
+        |                       |                   | ran at Thu Oct 29 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Fri Oct 30 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 3 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Wed Nov 4 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Thu Nov 5 07:30:00 2020 /bin/echo Hello
+        |                       |                   |
+~~~~~~~~|                       |                   |
+Fri     |                       |                   |
+Oct 30  |                       |                   |
+7:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+~~~~~~~~|                       |                   |
+Tue     |                       |                   |
+Nov 3   |                       |                   |
+7:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+9:00am  | python3 runstatus.py  |                   | ran at Wed Oct 28 07:30:00 2020 /bin/echo Hello
+        |                       |                   | ran at Thu Oct 29 07:30:00 2020 /bin/echo Hello
+        |                       |                   | ran at Fri Oct 30 07:30:00 2020 /bin/echo Hello
+        |                       |                   | ran at Tue Nov 3 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Wed Nov 4 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Thu Nov 5 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Fri Nov 6 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 10 07:30:00 2020 /bin/echo Hello
+.
+.
+.
+
+Test 13: An "every" config with multiple days and multiple times.
+
+  ~/.runner.conf -> every Tuesday,Wednesday at 0730,0930 run /bin/echo Hello
+
+Time    | Command               | What is Happening | Output
+------------------------------------------------------------------------------------------------------------
+Tue     |                       |                   |
+Oct 27  |                       |                   |
+8:30am  | python3 runner.py  &  |runner.py begins & |
+        |                       |continues          |
+        |                       |                   |
+9:00am  | python3 runstatus.py  |                   | will run at Tue Oct 27 09:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Wed Oct 28 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Wed Oct 28 09:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 3 07:30:00 2020 /bin/echo Hello
+        |                       |                   |
+9:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+~~~~~~~~|                       |                   |
+Wed     |                       |                   |
+Oct 28  |                       |                   |
+7:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+        |                       |                   |
+9:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+~~~~~~~~|                       |                   |
+Tue     |                       |                   |
+Nov 3   |                       |                   |
+7:30am  |                       |/bin/echo Hello    | Hello
+        |                       | is run, printing  |
+        |                       | "Hello"           |
+9:00am  | python3 runstatus.py  |                   | ran at Tue Oct 27 09:30:00 2020 /bin/echo Hello
+        |                       |                   | ran at Wed Oct 28 07:30:00 2020 /bin/echo Hello
+        |                       |                   | ran at Wed Oct 28 09:30:00 2020 /bin/echo Hello
+        |                       |                   | ran at Tue Nov 3 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 3 09:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Wed Nov 4 07:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Wed Nov 4 09:30:00 2020 /bin/echo Hello
+        |                       |                   | will run at Tue Nov 10 07:30:00 2020 /bin/echo Hello
+.
+.
+.
+
+Test 14: No parameters
+
+  ~/.runner.conf -> at 0730 run /bin/ls
+
+Time    | Command               | What is Happening | Output
+------------------------------------------------------------------------------------------------------------
+Tue     |                       |                   |
+6:30am  | python3 runner.py  &  |runner.py begins & |
+        |                       |continues          |
+        |                       |                   |
+7:30am  |                       |ls runs, printing  |
+        |                       | the current dir   |
+        |                       | contents          |
+        |                       |                   |
+        |                       |runner.py          | nothing left to run
+        |                       | terminates        |
+        |                       |                   |
+
+
+Test 15: Multiple parameters
+  ~/.runner.conf -> at 0730 run /bin/echo this is getting many parameters
+
+Time    | Command               | What is Happening | Output
+------------------------------------------------------------------------------------------------------------
+Tue     |                       |                   |
+6:30am  | python3 runner.py  &  |runner.py begins & |
+        |                       |continues          |
+        |                       |                   |
+7:30am  |                       |echo runs, printing| this is getting many parameters
+        |                       | all arguments     |
+        |                       |                   |
+        |                       |runner.py          | nothing left to run
+        |                       | terminates        |
+        |                       |                   |
